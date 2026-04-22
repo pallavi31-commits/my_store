@@ -1,0 +1,20 @@
+# ignore all node_modules everywhere
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# env files (important!)
+.env
+backend/.env
+frontend/.env
+
+# logs
+*.log
+
+# build folders
+dist/
+build/
+
+# OS junk
+.DS_Store
+Thumbs.db
