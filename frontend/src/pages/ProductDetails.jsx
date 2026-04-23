@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useParams } from "react-router";
+import { useNavigate } from "react-router";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -22,6 +23,7 @@ export default function ProductDetails() {
   }, [id]);
 
   // ✅ FIXED Add to Cart
+  const navigate = useNavigate();
   const addToCart = async () => {
     const userId = localStorage.getItem("userId"); // ✅ FIXED
 
@@ -46,8 +48,7 @@ export default function ProductDetails() {
 
       localStorage.setItem("cartCount", total);
       window.dispatchEvent(new Event("cartUpdated"));
-
-      alert("Item added to cart ✅");
+      navigate("/");
     } catch (err) {
       console.error("Add to cart error:", err);
     }

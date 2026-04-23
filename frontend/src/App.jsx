@@ -1,4 +1,63 @@
-import {createBrowserRouter, Outlet, RouterProvider} from "react-router";
+// import {createBrowserRouter, Outlet, RouterProvider} from "react-router";
+// import Home from "./pages/Home";
+// import Login from "./pages/Login";
+// import Signup from "./pages/Signup";
+// import ProductDetails from "./pages/ProductDetails";
+// import AddProduct from "./admin/AddProduct";
+// import EditProduct from "./admin/EditProduct";
+// import ProductList from "./admin/ProductList";
+// import Navbar from "./components/Navbar";
+// import Cart from "./pages/Cart";
+// import CheckoutAddress from "./pages/CheckoutAddress";
+// import Checkout from "./pages/Checkout";
+// import OrderSuccess from "./pages/OrderSuccess";
+
+// function Layout(){
+//   return (
+//     <>
+//     <Navbar/>
+//     <Outlet/>
+//     </>
+//   );
+// }
+
+// // const router = createBrowserRouter([
+// //   {path: "/", element: <Home/>},
+// //   {path: "/login", element: <Login/>},
+// //   {path: "/signup", element: <Signup/>},
+// //   {path: "/product/:id", element: <ProductDetails/>},
+
+// //   {path: "/admin/products", element: <ProductList/>},
+// //   {path: "/admin/products/add", element: <AddProduct/>},
+// //   {path: "/admin/products/edit/:id", element: <EditProduct/>},
+// // ]);
+
+// const router = createBrowserRouter([
+//   {
+//     path: "/",
+//     element: <Layout />,   // 👈 Navbar yahan se aayega
+//     children: [
+//       { path: "/", element: <Home /> },
+//       { path: "/login", element: <Login /> },
+//       { path: "/signup", element: <Signup /> },
+//       { path: "/product/:id", element: <ProductDetails /> },
+//       { path: "/cart", element: <Cart /> },
+
+//       { path: "/admin/products", element: <ProductList /> },
+//       { path: "/admin/products/add", element: <AddProduct /> },
+//       { path: "/admin/products/edit/:id", element: <EditProduct /> },
+//       { path: "/checkout-address", element: <CheckoutAddress /> },
+//       { path: "/checkout", element: <Checkout /> },
+//       { path: "/order-success/:id", element:<OrderSuccess/>},
+//     ],
+//   },
+// ]);
+
+// export default function App() {
+//   return <RouterProvider router={router}/>;
+// }
+
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -11,31 +70,21 @@ import Cart from "./pages/Cart";
 import CheckoutAddress from "./pages/CheckoutAddress";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
+import OrderSummary from "./pages/OrderSummary"; // ✅ ADD THIS
 
-function Layout(){
+function Layout() {
   return (
     <>
-    <Navbar/>
-    <Outlet/>
+      <Navbar />
+      <Outlet />
     </>
   );
 }
 
-// const router = createBrowserRouter([
-//   {path: "/", element: <Home/>},
-//   {path: "/login", element: <Login/>},
-//   {path: "/signup", element: <Signup/>},
-//   {path: "/product/:id", element: <ProductDetails/>},
-
-//   {path: "/admin/products", element: <ProductList/>},
-//   {path: "/admin/products/add", element: <AddProduct/>},
-//   {path: "/admin/products/edit/:id", element: <EditProduct/>},
-// ]);
-
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout />,   // 👈 Navbar yahan se aayega
+    element: <Layout />,
     children: [
       { path: "/", element: <Home /> },
       { path: "/login", element: <Login /> },
@@ -46,13 +95,18 @@ const router = createBrowserRouter([
       { path: "/admin/products", element: <ProductList /> },
       { path: "/admin/products/add", element: <AddProduct /> },
       { path: "/admin/products/edit/:id", element: <EditProduct /> },
+
       { path: "/checkout-address", element: <CheckoutAddress /> },
       { path: "/checkout", element: <Checkout /> },
-      { path: "/order-success/:id", element:<OrderSuccess/>},
+
+      { path: "/order-success/:id", element: <OrderSuccess /> },
+
+      // ✅ ADD THIS ROUTE
+      { path: "/order/:id", element: <OrderSummary /> },
     ],
   },
 ]);
 
 export default function App() {
-  return <RouterProvider router={router}/>;
+  return <RouterProvider router={router} />;
 }
