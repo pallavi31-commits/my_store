@@ -2,18 +2,19 @@ import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 import PDFDocument from 'pdfkit';
+import path from 'path';
 
+
+// ================= PLACE ORDER =================
 export const placeOrder = async (req, res) => {
     try {
         const { userId, address } = req.body;
 
-        //Get Cart
         const cart = await Cart.findOne({ userId }).populate('items.productId');
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ message: "Cart is empty" });
         }
 
-        //Prepare Order Items
         const orderItems = cart.items.map(item => ({
             productId: item.productId._id,
             title: item.productId.title,
@@ -21,15 +22,17 @@ export const placeOrder = async (req, res) => {
             price: item.productId.price,
         }));
 
-        //Calculate Total Amount
-        const totalAmount = orderItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+        const totalAmount = orderItems.reduce(
+            (total, item) => total + (item.price * item.quantity),
+            0
+        );
 
-        //Deduct stock from Products
-        for (let item of cart.items){
-            await Product.findByIdAndUpdate(item.productId._id, { $inc: { stock: -item.quantity } });
+        for (let item of cart.items) {
+            await Product.findByIdAndUpdate(item.productId._id, {
+                $inc: { stock: -item.quantity }
+            });
         }
 
-        //Create Order
         const order = await Order.create({
             userId,
             items: orderItems,
@@ -38,32 +41,38 @@ export const placeOrder = async (req, res) => {
             paymentMethod: "COD",
         });
 
-        //Clear Cart
         await Cart.findOneAndUpdate({ userId }, { items: [] });
 
-        res.status(201).json({ message: "Order placed successfully", orderId: order._id });
-        } catch (error) {
-            res.status(500).json({ message: "Internal server error" });
-        }
-}
+        res.status(201).json({
+            message: "Order placed successfully",
+            orderId: order._id
+        });
 
-// controllers/orderController.js
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
 
+
+// ================= GET ORDER =================
 export const getOrderById = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
-            .populate("items.productId", "title price"); // get product details
+            .populate("items.productId", "title price");
 
         if (!order) {
             return res.status(404).json({ message: "Order not found" });
         }
 
         res.json(order);
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
+
+// ================= DOWNLOAD PDF =================
 export const downloadOrderPDF = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
@@ -75,7 +84,6 @@ export const downloadOrderPDF = async (req, res) => {
 
         const doc = new PDFDocument();
 
-        // Set headers for download
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader(
             'Content-Disposition',
@@ -84,84 +92,82 @@ export const downloadOrderPDF = async (req, res) => {
 
         doc.pipe(res);
 
-// ===== HEADER =====
-doc.fontSize(20).text('ORDER SUMMARY', { align: 'center' });
+        // ===== LOGO (TOP LEFT) =====
+        const logoPath = path.join(process.cwd(), 'public', 'images', 'logo.png');
+        doc.image(logoPath, 50, 20, { width: 80 });
 
-doc.moveDown();
+        // ===== HEADER =====
+        doc.fontSize(20).text('ORDER SUMMARY', { align: 'center' });
 
-doc.fontSize(10).text(`Order ID: ${order._id}`);
-doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`);
+        doc.moveDown();
 
+        doc.fontSize(10).text(`Order ID: ${order._id}`);
+        doc.text(`Date: ${new Date(order.createdAt).toLocaleString()}`);
 
-// ===== TABLE =====
-doc.moveDown();
+        // ===== TABLE =====
+        doc.moveDown();
 
-const tableTop = doc.y;
-const itemX = 50;
-const qtyX = 300;
-const priceX = 350;
-const totalX = 450;
+        const tableTop = doc.y;
+        const itemX = 50;
+        const qtyX = 300;
+        const priceX = 350;
+        const totalX = 450;
 
-// Header Row
-doc.fontSize(12).text('Item', itemX, tableTop);
-doc.text('Qty', qtyX, tableTop);
-doc.text('Price', priceX, tableTop);
-doc.text('Total', totalX, tableTop);
+        doc.fontSize(12).text('Item', itemX, tableTop);
+        doc.text('Qty', qtyX, tableTop);
+        doc.text('Price', priceX, tableTop);
+        doc.text('Total', totalX, tableTop);
 
-// Line
-doc.moveTo(50, tableTop + 15)
-   .lineTo(550, tableTop + 15)
-   .stroke();
+        doc.moveTo(50, tableTop + 15)
+           .lineTo(550, tableTop + 15)
+           .stroke();
 
-let y = tableTop + 25;
+        let y = tableTop + 25;
 
-// Rows
-order.items.forEach((item) => {
-    doc.text(item.title, itemX, y);
-    doc.text(item.quantity.toString(), qtyX, y);
-    doc.text(`₹${item.price}`, priceX, y);
-    doc.text(`₹${item.quantity * item.price}`, totalX, y);
+        order.items.forEach((item) => {
+            doc.text(item.title, itemX, y);
+            doc.text(item.quantity.toString(), qtyX, y);
+            doc.text(`₹${item.price}`, priceX, y);
+            doc.text(`₹${item.quantity * item.price}`, totalX, y);
+            y += 20;
+        });
 
-    y += 20;
-});
+        doc.moveTo(50, y)
+           .lineTo(550, y)
+           .stroke();
 
-// Line after table
-doc.moveTo(50, y)
-   .lineTo(550, y)
-   .stroke();
+        // ===== TOTAL =====
+        doc.moveDown();
 
+        doc.text(`Subtotal: ₹${order.totalAmount}`, { align: 'right' });
+        doc.text(`Shipping: ₹0`, { align: 'right' });
+        doc.text(`Total: ₹${order.totalAmount}`, { align: 'right' });
 
-// ===== TOTAL =====
-doc.moveDown();
+        // ===== ADDRESS =====
+        doc.moveDown();
 
-doc.text(`Subtotal: ₹${order.totalAmount}`, { align: 'right' });
-doc.text(`Shipping: ₹0`, { align: 'right' });
-doc.text(`Total: ₹${order.totalAmount}`, { align: 'right' });
+        const boxX = 50;
+        const boxY = doc.y + 20;
+        const boxWidth = 250;
+        const boxHeight = 100;
 
+        doc.rect(boxX, boxY, boxWidth, boxHeight).stroke();
 
-// ===== ADDRESS =====
-doc.moveDown();
+        doc.fontSize(12).text('Shipping Address', boxX + 10, boxY + 10);
 
-// ===== SHIPPING ADDRESS BOX =====
+        doc.fontSize(10).text(order.address.fullName, boxX + 10, boxY + 30);
+        doc.text(order.address.addressLine, boxX + 10, boxY + 45);
+        doc.text(`${order.address.city}, ${order.address.state}`, boxX + 10, boxY + 60);
+        doc.text(order.address.pincode, boxX + 10, boxY + 75);
 
-// Position
-const boxX = 50;
-const boxY = doc.y + 20;
-const boxWidth = 250;
-const boxHeight = 100;
+        // ===== FOOTER =====
+        doc.moveDown(4);
+        doc.fontSize(12).text('Thank you for shopping!', {
+            align: 'center'
+        });
 
-// Draw box
-doc.rect(boxX, boxY, boxWidth, boxHeight).stroke();
-
-// Title
-doc.fontSize(12).text('Shipping Address', boxX + 10, boxY + 10);
-
-// Address text inside box
-doc.fontSize(10).text(order.address.fullName, boxX + 10, boxY + 30);
-doc.text(order.address.addressLine, boxX + 10, boxY + 45);
-doc.text(`${order.address.city}, ${order.address.state}`, boxX + 10, boxY + 60);
-doc.text(order.address.pincode, boxX + 10, boxY + 75);
         doc.end();
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
