@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import api from "../api/axios";
+import logo from "../assets/logo.png";
 
 export default function Navbar() {
     const navigate = useNavigate();
@@ -55,10 +56,10 @@ export default function Navbar() {
 
     return (
         <nav className="flex justify-between p-4 shadow bg-black text-white">
-            <Link to="/" className="font-bold text-xl">
-                My Store
+            <Link to="/" className="flex items-center">
+            <img src={logo} alt="My Store Logo" className="h-8 w-auto scale-201 origin-left"/>
             </Link>
-
+            
             <div className="flex gap-4 items-center">
                 <Link to="/cart" className="relative text-xl">
                     🛒

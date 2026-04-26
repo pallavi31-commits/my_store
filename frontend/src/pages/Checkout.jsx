@@ -39,6 +39,7 @@ export default function Checkout() {
       userId,
       address: selectedAddress,
     });
+    window.dispatchEvent(new Event("cartUpdated"));
     navigate(`/order-success/${res.data.orderId}`);
   };
 

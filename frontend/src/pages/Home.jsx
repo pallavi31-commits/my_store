@@ -42,6 +42,7 @@ export default function Home() {
       }
 
       console.log("Adding to cart:", { userId, productId });
+      alert("item added successfully");
 
       const res = await api.post(`/cart/add`, {
         userId,

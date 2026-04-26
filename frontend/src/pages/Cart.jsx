@@ -89,6 +89,7 @@ export default function Cart() {
               key={item.productId?._id}
               className="flex items-center justify-between p-4 border rounded"
             >
+              {/* Product Info */}
               <div className="flex items-center gap-4">
                 <img
                   src={item.productId?.image}
@@ -105,41 +106,47 @@ export default function Cart() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* Controls + Price + Remove aligned */}
+              <div className="flex items-center gap-22 min-w-75 justify-end">
+                {/* Quantity Controls */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() =>
+                      updateQty(item.productId?._id, item.quantity - 1)
+                    }
+                    className="px-2 py-1 bg-gray-200 rounded"
+                  >
+                    -
+                  </button>
+                  <span className="w-8 text-center">{item.quantity}</span>
+                  <button
+                    onClick={() =>
+                      updateQty(item.productId?._id, item.quantity + 1)
+                    }
+                    className="px-2 py-1 bg-gray-200 rounded"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Price */}
+                <div className="w-24 text-right">
+                  <p className="font-semibold">
+                    ₹
+                    {(
+                      (item.productId?.price || 0) * item.quantity
+                    ).toFixed(2)}
+                  </p>
+                </div>
+
+                {/* Remove Button */}
                 <button
-                  onClick={() =>
-                    updateQty(item.productId?._id, item.quantity - 1)
-                  }
-                  className="px-2 py-1 bg-gray-200 rounded"
+                  onClick={() => removeItem(item.productId?._id)}
+                  className="text-red-500"
                 >
-                  -
-                </button>
-                <span>{item.quantity}</span>
-                <button
-                  onClick={() =>
-                    updateQty(item.productId?._id, item.quantity + 1)
-                  }
-                  className="px-2 py-1 bg-gray-200 rounded"
-                >
-                  +
+                  Remove
                 </button>
               </div>
-
-              <div>
-                <p className="font-semibold">
-                  ₹
-                  {(
-                    (item.productId?.price || 0) * item.quantity
-                  ).toFixed(2)}
-                </p>
-              </div>
-
-              <button
-                onClick={() => removeItem(item.productId?._id)}
-                className="text-red-500"
-              >
-                Remove
-              </button>
             </div>
           ))}
 
@@ -160,3 +167,5 @@ export default function Cart() {
     </div>
   );
 }
+
+

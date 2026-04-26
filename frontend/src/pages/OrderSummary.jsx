@@ -74,7 +74,7 @@ export default function OrderSummary() {
             <div className="text-center">
                 <button
                     onClick={downloadPDF}
-                    className="bg-red-600 text-white px-6 py-2 rounded"
+                    className="bg-green-600 text-white px-6 py-2 rounded"
                 >
                     Download Order PDF
                 </button>
